@@ -108,6 +108,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=18,
         help="MP4 quality for libx264. Lower is higher quality. Default: 18.",
     )
+    parser.add_argument(
+        "--seamless",
+        action="store_true",
+        help="When encoding MP4/GIF, append the same frames in reverse so playback returns to start.",
+    )
     parser.add_argument("--overwrite", action="store_true", help="Replace existing output frames.")
     parser.add_argument(
         "--no-auto-download",
@@ -158,6 +163,7 @@ def main() -> int:
             video_output=args.video_output,
             fps=args.fps,
             crf=args.crf,
+            seamless=args.seamless,
             verbose=args.verbose,
         )
         print(f"Generated MP4: {args.video_output.expanduser().resolve()}")
@@ -169,6 +175,7 @@ def main() -> int:
             gif_output=args.gif_output,
             fps=args.gif_fps or args.fps,
             loop=args.gif_loop,
+            seamless=args.seamless,
             verbose=args.verbose,
         )
         print(f"Generated GIF: {args.gif_output.expanduser().resolve()}")

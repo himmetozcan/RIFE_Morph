@@ -43,8 +43,16 @@ def write_png_sequence(
         )
 
 
-def frame_sequence(start: Path, intermediate_frames: list[Path], end: Path) -> list[Path]:
-    return [start.expanduser().resolve(), *intermediate_frames, end.expanduser().resolve()]
+def frame_sequence(
+    start: Path,
+    intermediate_frames: list[Path],
+    end: Path,
+    seamless: bool = False,
+) -> list[Path]:
+    forward = [start.expanduser().resolve(), *intermediate_frames, end.expanduser().resolve()]
+    if not seamless:
+        return forward
+    return [*forward, *reversed(forward[:-1])]
 
 
 def encode_video(
@@ -54,6 +62,7 @@ def encode_video(
     video_output: Path,
     fps: int,
     crf: int,
+    seamless: bool,
     verbose: bool,
 ) -> None:
     if fps < 1:
@@ -67,7 +76,12 @@ def encode_video(
 
     with tempfile.TemporaryDirectory(prefix="rife_morph_video_") as temp_name:
         temp_dir = Path(temp_name)
-        write_png_sequence(ffmpeg, frame_sequence(start, intermediate_frames, end), temp_dir, verbose)
+        write_png_sequence(
+            ffmpeg,
+            frame_sequence(start, intermediate_frames, end, seamless=seamless),
+            temp_dir,
+            verbose,
+        )
         run_command(
             [
                 ffmpeg,
@@ -105,6 +119,7 @@ def encode_gif(
     gif_output: Path,
     fps: int,
     loop: int,
+    seamless: bool,
     verbose: bool,
 ) -> None:
     if fps < 1:
@@ -118,7 +133,12 @@ def encode_gif(
 
     with tempfile.TemporaryDirectory(prefix="rife_morph_gif_") as temp_name:
         temp_dir = Path(temp_name)
-        write_png_sequence(ffmpeg, frame_sequence(start, intermediate_frames, end), temp_dir, verbose)
+        write_png_sequence(
+            ffmpeg,
+            frame_sequence(start, intermediate_frames, end, seamless=seamless),
+            temp_dir,
+            verbose,
+        )
         run_command(
             [
                 ffmpeg,
