@@ -4,7 +4,7 @@ Generate `N` RIFE intermediate frames between two images.
 
 This project wraps [`rife-ncnn-vulkan`](https://github.com/nihui/rife-ncnn-vulkan), a portable RIFE build that includes the executable and model files for Windows, Linux, and macOS. It does not require CUDA or PyTorch.
 
-<img src="examples/face_morph_2s_blur.gif" alt="Example morph" width="312">
+<img src="examples/face_morph_seamless.gif" alt="Example seamless morph" width="312">
 
 ## Quick Start
 
@@ -71,7 +71,8 @@ python rife_morph.py \
   --frames 46 \
   --output output_frames/example \
   --gif-output example.gif \
-  --gif-fps 24
+  --gif-fps 24 \
+  --seamless
 ```
 
 ## Optional Virtual Environment
