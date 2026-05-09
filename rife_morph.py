@@ -28,6 +28,8 @@ def repo_root() -> Path:
 def validate_args(args: argparse.Namespace) -> None:
     if args.frames < 1:
         raise SystemExit("--frames must be at least 1.")
+    if args.seamless_hold_frames < 0:
+        raise SystemExit("--seamless-hold-frames must be 0 or greater.")
     if args.start == args.end:
         raise SystemExit("--start and --end must point to different files.")
     if args.format not in {"png", "jpg", "webp"}:
@@ -113,6 +115,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="When encoding MP4/GIF, append the same frames in reverse so playback returns to start.",
     )
+    parser.add_argument(
+        "--seamless-hold-frames",
+        type=int,
+        default=10,
+        help="Endpoint hold frames used by --seamless. Default: 10.",
+    )
     parser.add_argument("--overwrite", action="store_true", help="Replace existing output frames.")
     parser.add_argument(
         "--no-auto-download",
@@ -164,6 +172,7 @@ def main() -> int:
             fps=args.fps,
             crf=args.crf,
             seamless=args.seamless,
+            seamless_hold_frames=args.seamless_hold_frames,
             verbose=args.verbose,
         )
         print(f"Generated MP4: {args.video_output.expanduser().resolve()}")
@@ -176,6 +185,7 @@ def main() -> int:
             fps=args.gif_fps or args.fps,
             loop=args.gif_loop,
             seamless=args.seamless,
+            seamless_hold_frames=args.seamless_hold_frames,
             verbose=args.verbose,
         )
         print(f"Generated GIF: {args.gif_output.expanduser().resolve()}")

@@ -48,11 +48,24 @@ def frame_sequence(
     intermediate_frames: list[Path],
     end: Path,
     seamless: bool = False,
+    hold_frames: int = 10,
 ) -> list[Path]:
     forward = [start.expanduser().resolve(), *intermediate_frames, end.expanduser().resolve()]
     if not seamless:
         return forward
-    return [*forward, *reversed(forward[:-1])]
+
+    if hold_frames < 1:
+        return [*forward, *reversed(forward[:-1])]
+
+    start_frame = start.expanduser().resolve()
+    end_frame = end.expanduser().resolve()
+    return [
+        *([start_frame] * hold_frames),
+        *intermediate_frames,
+        *([end_frame] * hold_frames),
+        *reversed(intermediate_frames),
+        *([start_frame] * hold_frames),
+    ]
 
 
 def encode_video(
@@ -63,6 +76,7 @@ def encode_video(
     fps: int,
     crf: int,
     seamless: bool,
+    seamless_hold_frames: int,
     verbose: bool,
 ) -> None:
     if fps < 1:
@@ -78,7 +92,13 @@ def encode_video(
         temp_dir = Path(temp_name)
         write_png_sequence(
             ffmpeg,
-            frame_sequence(start, intermediate_frames, end, seamless=seamless),
+            frame_sequence(
+                start,
+                intermediate_frames,
+                end,
+                seamless=seamless,
+                hold_frames=seamless_hold_frames,
+            ),
             temp_dir,
             verbose,
         )
@@ -120,6 +140,7 @@ def encode_gif(
     fps: int,
     loop: int,
     seamless: bool,
+    seamless_hold_frames: int,
     verbose: bool,
 ) -> None:
     if fps < 1:
@@ -135,7 +156,13 @@ def encode_gif(
         temp_dir = Path(temp_name)
         write_png_sequence(
             ffmpeg,
-            frame_sequence(start, intermediate_frames, end, seamless=seamless),
+            frame_sequence(
+                start,
+                intermediate_frames,
+                end,
+                seamless=seamless,
+                hold_frames=seamless_hold_frames,
+            ),
             temp_dir,
             verbose,
         )

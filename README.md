@@ -62,6 +62,20 @@ python rife_morph.py \
   --seamless
 ```
 
+`--seamless` holds on the first and last frames for 10 frames by default. Change it with `--seamless-hold-frames`:
+
+```bash
+python rife_morph.py \
+  --start path/to/start.png \
+  --end path/to/end.png \
+  --frames 12 \
+  --output output_frames \
+  --gif-output morph.gif \
+  --gif-fps 24 \
+  --seamless \
+  --seamless-hold-frames 16
+```
+
 Run the included example:
 
 ```bash
@@ -72,7 +86,8 @@ python rife_morph.py \
   --output output_frames/example \
   --gif-output example.gif \
   --gif-fps 24 \
-  --seamless
+  --seamless \
+  --seamless-hold-frames 10
 ```
 
 ## Optional Virtual Environment
@@ -173,6 +188,8 @@ python rife_morph.py \
 --gif-loop          GIF loop count. 0 means loop forever. Default: 0
 --crf               MP4 quality for libx264. Lower is higher quality. Default: 18
 --seamless          Append the same frames in reverse when encoding MP4/GIF.
+--seamless-hold-frames
+                    Endpoint hold frames used by --seamless. Default: 10
 --overwrite         Replace existing generated frames.
 --no-auto-download  Disable automatic RIFE download.
 --verbose           Print download and RIFE commands.
@@ -194,6 +211,7 @@ media_outputs.py   MP4/GIF encoding helpers.
 - MP4 output is padded to even dimensions when needed for `libx264` compatibility.
 - GIF output uses an ffmpeg-generated palette for better color quality.
 - `--seamless` does not run RIFE again. It encodes the same generated frames forward, then reversed back to the start frame.
+- `--seamless-hold-frames` repeats the first and last frame in seamless MP4/GIF output. Default: 10 frames.
 - If the executable fails to start on Linux, install or update your Vulkan driver/runtime from your OS package manager.
 - If macOS blocks the downloaded executable, allow it in System Settings, or remove the quarantine attribute from `.rife/` if you trust the downloaded release.
 - The frame output directory contains only the generated in-between frames. MP4/GIF output includes the start frame, generated frames, and end frame.
