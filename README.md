@@ -4,7 +4,12 @@ Generate `N` RIFE intermediate frames between two images.
 
 This project wraps [`rife-ncnn-vulkan`](https://github.com/nihui/rife-ncnn-vulkan), a portable RIFE build that includes the executable and model files for Windows, Linux, and macOS. It does not require CUDA or PyTorch.
 
-<img src="examples/face_morph_seamless_hold_122f.gif" alt="Example seamless morph with endpoint hold" width="312">
+## Examples Preview
+
+| Mode | Input Frame | End Frame | Output |
+| --- | --- | --- | --- |
+| Seamless morph + endpoint hold | <img src="examples/start_lowres_blur.png" width="120" alt="Blurred start frame"> | <img src="examples/end.png" width="120" alt="End frame"> | <img src="examples/face_morph_seamless_hold_122f.gif" width="120" alt="Seamless morph with hold"> |
+| Seamless morph | <img src="examples/face2/start_256.png" width="120" alt="Face2 start frame"> | <img src="examples/face2/end_256.png" width="120" alt="Face2 end frame"> | <img src="examples/face2_morph_seamless_1s_transitions_256.gif" width="120" alt="Face2 seamless morph"> |
 
 ## Quick Start
 
@@ -35,6 +40,17 @@ python rife_morph.py \
   --output output_frames \
   --video-output morph.mp4 \
   --fps 24
+```
+
+To increase a video's FPS with RIFE:
+
+```bash
+python rife_morph.py \
+  --input-video input_30fps.mp4 \
+  --source-fps 30 \
+  --target-fps 90 \
+  --video-output output_90fps.mp4 \
+  --overwrite
 ```
 
 To create a GIF instead:
@@ -172,6 +188,9 @@ python rife_morph.py \
 --start             First/source frame image.
 --end               Last/target frame image.
 --frames            Number of intermediate frames to generate.
+--input-video       Input video for FPS upsampling mode.
+--source-fps        Source FPS used when extracting input video frames. Default: 30
+--target-fps        Target FPS for video mode. Must be an integer multiple of source FPS.
 --output            Output directory. Default: output_frames
 --format            png, jpg, or webp. Default: png
 --model             Bundled model name. Default: rife-v4.6
@@ -202,6 +221,7 @@ examples/          Test start/end frames and final example GIF.
 rife_morph.py      CLI entrypoint and argument parsing.
 rife_backend.py    RIFE download, model lookup, and intermediate frame generation.
 media_outputs.py   MP4/GIF encoding helpers.
+video_fps.py       Video FPS upsampling with RIFE.
 ```
 
 ## Notes
@@ -212,6 +232,7 @@ media_outputs.py   MP4/GIF encoding helpers.
 - GIF output uses an ffmpeg-generated palette for better color quality.
 - `--seamless` does not run RIFE again. It encodes the same generated frames forward, then reversed back to the start frame.
 - `--seamless-hold-frames` repeats the first and last frame in seamless MP4/GIF output. Default: 10 frames.
+- `--input-video` mode extracts frames at `--source-fps`, inserts RIFE frames between adjacent frames, and encodes at `--target-fps`.
 - If the executable fails to start on Linux, install or update your Vulkan driver/runtime from your OS package manager.
 - If macOS blocks the downloaded executable, allow it in System Settings, or remove the quarantine attribute from `.rife/` if you trust the downloaded release.
 - The frame output directory contains only the generated in-between frames. MP4/GIF output includes the start frame, generated frames, and end frame.

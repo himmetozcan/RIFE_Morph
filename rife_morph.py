@@ -19,6 +19,7 @@ from rife_backend import (
     make_executable,
     resolve_model,
 )
+from video_fps import interpolate_video_fps
 
 
 def repo_root() -> Path:
@@ -26,10 +27,23 @@ def repo_root() -> Path:
 
 
 def validate_args(args: argparse.Namespace) -> None:
-    if args.frames < 1:
+    if args.input_video:
+        if not args.video_output:
+            raise SystemExit("--input-video requires --video-output.")
+        if args.source_fps < 1:
+            raise SystemExit("--source-fps must be at least 1.")
+        if args.target_fps is None:
+            raise SystemExit("--input-video requires --target-fps.")
+        if args.start or args.end or args.frames:
+            raise SystemExit("--input-video mode cannot be combined with --start, --end, or --frames.")
+        return
+
+    if args.frames is None or args.frames < 1:
         raise SystemExit("--frames must be at least 1.")
     if args.seamless_hold_frames < 0:
         raise SystemExit("--seamless-hold-frames must be 0 or greater.")
+    if args.start is None or args.end is None:
+        raise SystemExit("--start and --end are required unless --input-video is used.")
     if args.start == args.end:
         raise SystemExit("--start and --end must point to different files.")
     if args.format not in {"png", "jpg", "webp"}:
@@ -38,15 +52,30 @@ def validate_args(args: argparse.Namespace) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Fill N RIFE intermediate frames between a start frame and an end frame."
+        description="Generate RIFE image morph frames or upsample video FPS."
     )
-    parser.add_argument("--start", required=True, type=Path, help="First/source frame image.")
-    parser.add_argument("--end", required=True, type=Path, help="Last/target frame image.")
+    parser.add_argument("--start", type=Path, help="First/source frame image.")
+    parser.add_argument("--end", type=Path, help="Last/target frame image.")
     parser.add_argument(
         "--frames",
-        required=True,
         type=int,
         help="Number of intermediate frames to generate between start and end.",
+    )
+    parser.add_argument(
+        "--input-video",
+        type=Path,
+        help="Input video for FPS upsampling mode.",
+    )
+    parser.add_argument(
+        "--source-fps",
+        type=int,
+        default=30,
+        help="Source FPS used when extracting input video frames. Default: 30.",
+    )
+    parser.add_argument(
+        "--target-fps",
+        type=int,
+        help="Target FPS for --input-video mode. Must be an integer multiple of --source-fps.",
     )
     parser.add_argument(
         "--output",
@@ -148,6 +177,25 @@ def main() -> int:
         )
 
     model = resolve_model(binary, args.model, args.model_path)
+    if args.input_video:
+        interpolate_video_fps(
+            input_video=args.input_video,
+            output_video=args.video_output,
+            source_fps=args.source_fps,
+            target_fps=args.target_fps,
+            binary=binary,
+            model=model,
+            gpu=args.gpu,
+            tta_spatial=args.tta_spatial,
+            tta_temporal=args.tta_temporal,
+            uhd=args.uhd,
+            crf=args.crf,
+            overwrite=args.overwrite,
+            verbose=args.verbose,
+        )
+        print(f"Generated FPS-upsampled video: {args.video_output.expanduser().resolve()}")
+        return 0
+
     outputs = generate_frames(
         start=args.start,
         end=args.end,
